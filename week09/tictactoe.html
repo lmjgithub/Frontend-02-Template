@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TicTacToe</title>
+    <style>
+      body {
+        font-size: 0;
+      }
+      .cell {
+        background: green;
+        width: 100px;
+        height: 100px;
+        display: inline-block;
+        border: 1px solid #fff;
+        line-height: 100px;
+        font-size: 50px;
+        vertical-align: top;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+  </body>
+  <script>
+    const pattern = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let flag = 1;
+    function draw() {
+      const $container = document.querySelector('#container');
+      $container.innerHTML = '';
+      for (let index = 0; index < pattern.length; index++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.innerHTML =
+          pattern[index] === 1 ? '⭕️' : pattern[index] === 2 ? '❌' : '';
+        cell.addEventListener('click', (e) =>
+          personMove(Math.floor(index / 3), index % 3)
+        );
+        $container.append(cell);
+        if (index % 3 === 2) {
+          $container.append(document.createElement('br'));
+        }
+      }
+    }
+
+    function move(x, y) {
+      pattern[x * 3 + y] = flag;
+      flag = 3 - flag;
+      draw();
+    }
+
+    function personMove(x, y) {
+      const val = pattern[x * 3 + y];
+      if (val) {
+        alert('不能选择已经走过的格子');
+        return false;
+      }
+      move(x, y);
+      computerMove();
+    }
+
+    function computerMove() {
+      const choice = bestChoice(pattern, flag);
+      if (choice && choice.point) {
+        console.log(choice);
+
+        const [x, y] = choice.point;
+        move(x - 1, y - 1);
+        draw();
+      }
+    }
+
+    function isWin(pattern, flag) {
+      {
+        loopRow: for (let row = 0; row < 3; row++) {
+          let isWin = false;
+          for (let index = 0; index < 3; index++) {
+            const currentFlag = pattern[row * 3 + index];
+            if (currentFlag !== flag) {
+              continue loopRow;
+            } else {
+              isWin = true;
+            }
+          }
+          if (isWin) {
+            return true;
+          }
+        }
+      }
+
+      {
+        loopCol: for (let col = 0; col < 3; col++) {
+          let isWin = false;
+          for (let index = 0; index < 3; index++) {
+            const currentFlag = pattern[col + index * 3];
+            if (currentFlag !== flag) {
+              continue loopCol;
+            } else {
+              isWin = true;
+            }
+          }
+          if (isWin) {
+            return true;
+          }
+        }
+      }
+
+      {
+        let isWin = false;
+        for (let row = 0; row < 3; row++) {
+          const currentFlag = pattern[(row % 3) + row * 3];
+          if (currentFlag !== flag) {
+            isWin = false;
+            break;
+          } else {
+            isWin = true;
+          }
+        }
+        if (isWin) {
+          return true;
+        }
+      }
+
+      {
+        let isWin = false;
+        for (let row = 0; row < 3; row++) {
+          let currentFlag = pattern[row * 2 + 2];
+          if (currentFlag !== flag) {
+            isWin = false;
+            break;
+          } else {
+            isWin = true;
+          }
+        }
+
+        if (isWin) {
+          return true;
+        }
+
+        return false;
+      }
+    }
+
+    function willWin(p, flag) {
+      for (let i = 0; i < pattern.length; i++) {
+        const pattern = [...p];
+        if (pattern[i]) {
+          continue;
+        } else {
+          pattern[i] = flag;
+          if (isWin(pattern, flag)) {
+            return i;
+          }
+        }
+      }
+      return null;
+    }
+
+    function bestChoice(pattern, flag) {
+      let p;
+      if ((p = willWin(pattern, flag))) {
+        return { point: transitionPlanar(p), result: 1 };
+      }
+      let result = -2;
+      let point = null;
+
+      for (let cell = 0; cell < 9; cell++) {
+        if (pattern[cell]) {
+          continue;
+        } else {
+          let p = [...pattern];
+          p[cell] = flag;
+          let r = bestChoice(p, 3 - flag).result;
+          if (-r > result) {
+            result = -r;
+            point = transitionPlanar(cell);
+          }
+        }
+      }
+      return { point, result: point ? result : 0 };
+    }
+
+    function transitionPlanar(i) {
+      return [Math.floor(i / 3) + 1, (i % 3) + 1];
+    }
+
+    draw();
+  </script>
+</html>
